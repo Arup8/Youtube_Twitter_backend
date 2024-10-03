@@ -96,4 +96,3 @@ and also combines the tweet functionality from twitter into it. Find more about 
 
 If you wish to contribute to this project, please feel free to contribute.
 
-## License
