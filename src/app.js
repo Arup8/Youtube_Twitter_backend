@@ -30,9 +30,9 @@ import dashboardRouter from "./routes/dashboard.routes.js"
 
 
 //for deployment
-// app.use("/", (req, res) => {
-//     res.send({ message: "Welcome to youtube-twitter" });
-// });
+app.use("/", (req, res) => {
+    res.send({ message: "Welcome to youtube-twitter" });
+});
 
 // routes declaration
 // app.use("/users", userRouter)
