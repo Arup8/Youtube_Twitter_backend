@@ -102,8 +102,16 @@ const registerUser = asyncHandler( async (req, res) => {
     // 5. create user object - create entry in db
     const user = await User.create({
         fullName,
-        avatar: avatar.url,
-        coverImage: coverImage?.url || "", // here actually we need to check fro coverImage cause wwe didn't write the if statement for coverIamge but for avatar so for avatar we don't need check
+        // avatar: avatar.url,
+        // coverImage: coverImage?.url || "", // here actually we need to check fro coverImage cause wwe didn't write the if statement for coverIamge but for avatar so for avatar we don't need check
+        avatar: {
+            public_id: avatar.public_id,
+            url: avatar.secure_url
+        },
+        coverImage: {
+            public_id: coverImage?.public_id || "",
+            url: coverImage?.secure_url || ""
+        },
         email,
         password,
         username: username.toLowerCase()
