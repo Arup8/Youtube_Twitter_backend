@@ -9,11 +9,98 @@ import { Comment } from "../models/comment.model.js";
 import { Like } from "../models/like.model.js";
 
 
+// const getAllVideos = asyncHandler(async (req, res) => {
+//     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
+//     //TODO: get all videos based on query, sort, pagination
+
+//     console.log("userId: ", userId);
+//     const pipeline = [];
+
+//     // for using Full Text based search u need to create a search index in mongoDB atlas
+//     // you can include field mapppings in search index eg.title, description, as well
+//     // Field mappings specify which fields within your documents should be indexed for text search.
+//     // this helps in seraching only in title, desc providing faster search results
+//     // here the name of search index is 'search-videos'
+//     if (query) {
+//         pipeline.push({
+//             $search: {
+//                 index: "search-videos",
+//                 text: {
+//                     query: query,
+//                     path: ["title", "description"] //search only on title, desc
+//                 }
+//             }
+//         });
+//     }
+
+//     if (userId) {
+//         if (!isValidObjectId(userId)) {
+//             throw new ApiError(400, "Invalid userId");
+//         }
+
+//         pipeline.push({
+//             $match: {
+//                 owner: new mongoose.Types.ObjectId(userId)
+//             }
+//         });
+//     }
+
+//     // fetch videos only that are set isPublished as true
+//     pipeline.push({ $match: { isPublished: true } });
+
+//     //sortBy can be views, createdAt, duration
+//     //sortType can be ascending(-1) or descending(1)
+//     if (sortBy && sortType) {
+//         pipeline.push({
+//             $sort: {
+//                 [sortBy]: sortType === "asc" ? 1 : -1
+//             }
+//         });
+//     } else {
+//         pipeline.push({ $sort: { createdAt: -1 } });
+//     }
+
+//     pipeline.push(
+//         {
+//             $lookup: {
+//                 from: "users",
+//                 localField: "owner",
+//                 foreignField: "_id",
+//                 as: "ownerDetails",
+//                 pipeline: [
+//                     {
+//                         $project: {
+//                             username: 1,
+//                             "avatar.url": 1
+//                         }
+//                     }
+//                 ]
+//             }
+//         },
+//         {
+//             $unwind: "$ownerDetails"
+//         }
+//     )
+
+//     const videoAggregate = Video.aggregate(pipeline);
+
+//     const options = {
+//         page: parseInt(page, 10),
+//         limit: parseInt(limit, 10)
+//     };
+
+//     const video = await Video.aggregatePaginate(videoAggregate, options);
+
+//     return res
+//         .status(200)
+//         .json(new ApiResponse(200, video, "Videos fetched successfully"));
+// })
+
 const getAllVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
-    //TODO: get all videos based on query, sort, pagination
+    console.log("req.query: ", req.query);
+    console.log("userId: ", userId);
 
-    console.log(userId);
     const pipeline = [];
 
     // for using Full Text based search u need to create a search index in mongoDB atlas
@@ -21,18 +108,21 @@ const getAllVideos = asyncHandler(async (req, res) => {
     // Field mappings specify which fields within your documents should be indexed for text search.
     // this helps in seraching only in title, desc providing faster search results
     // here the name of search index is 'search-videos'
+    
+    // Step 1: Full-text search using the search index
     if (query) {
         pipeline.push({
             $search: {
                 index: "search-videos",
                 text: {
                     query: query,
-                    path: ["title", "description"] //search only on title, desc
+                    path: ["title", "description"] // Search only in title and description
                 }
             }
         });
     }
 
+    // Step 2: Match videos with the specified owner (if userId is provided)
     if (userId) {
         if (!isValidObjectId(userId)) {
             throw new ApiError(400, ":( Invalid userId");
@@ -45,11 +135,10 @@ const getAllVideos = asyncHandler(async (req, res) => {
         });
     }
 
-    // fetch videos only that are set isPublished as true
+    // Step 3: Filter only published videos
     pipeline.push({ $match: { isPublished: true } });
 
-    //sortBy can be views, createdAt, duration
-    //sortType can be ascending(-1) or descending(1)
+    // Step 4: Sorting
     if (sortBy && sortType) {
         pipeline.push({
             $sort: {
@@ -60,6 +149,14 @@ const getAllVideos = asyncHandler(async (req, res) => {
         pipeline.push({ $sort: { createdAt: -1 } });
     }
 
+    // Step 5: Add $skip and $limit for pagination
+    const skip = (page - 1) * limit;
+    pipeline.push(
+        { $skip: skip },
+        { $limit: parseInt(limit, 10) }
+    );
+
+    // Step 6: Use $lookup to fetch owner details
     pipeline.push(
         {
             $lookup: {
@@ -80,21 +177,22 @@ const getAllVideos = asyncHandler(async (req, res) => {
         {
             $unwind: "$ownerDetails"
         }
-    )
+    );
 
-    const videoAggregate = Video.aggregate(pipeline);
+    try {
+        // Run the aggregation pipeline
+        const videos = await Video.aggregate(pipeline);
 
-    const options = {
-        page: parseInt(page, 10),
-        limit: parseInt(limit, 10)
-    };
+        // Send the paginated results
+        return res
+            .status(200)
+            .json(new ApiResponse(200, videos, ":) Videos fetched successfully"));
+    } catch (error) {
+        console.error("Error fetching videos: ", error);
+        return res.status(500).json(new ApiResponse(500, null, ":( Failed to fetch videos"));
+    }
+});
 
-    const video = await Video.aggregatePaginate(videoAggregate, options);
-
-    return res
-        .status(200)
-        .json(new ApiResponse(200, video, ":) Videos fetched successfully"));
-})
 
 const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description} = req.body
