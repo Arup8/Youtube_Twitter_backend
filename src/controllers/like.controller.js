@@ -9,7 +9,8 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
     //TODO: toggle like on video
 
     if (!isValidObjectId(videoId)) {
-        throw new ApiError(400, ":( Invalid videoId");
+        // throw new ApiError(400, ":( Invalid videoId");
+        return res.status(400).json(new ApiError(400, null, ":( Invalid videoId"));
     }
 
 
@@ -41,7 +42,8 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
     //TODO: toggle like on comment
 
     if (!isValidObjectId(commentId)) {
-        throw new ApiError(400, ":( Invalid commentId");
+        // throw new ApiError(400, ":( Invalid commentId");
+        return res.status(400).json(new ApiError(400, null, ":( Invalid commentId"));
     }
 
 
@@ -73,7 +75,8 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
     //TODO: toggle like on tweet
 
     if (!isValidObjectId(tweetId)) {
-        throw new ApiError(400, ":( Invalid tweetId");
+        // throw new ApiError(400, ":( Invalid tweetId");
+        return res.status(400).json(new ApiError(400, null, ":( Invalid tweetId"));
     }
 
 

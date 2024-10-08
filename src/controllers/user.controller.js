@@ -57,7 +57,8 @@ const registerUser = asyncHandler( async (req, res) => {
     if(
         [fullName, email, username, password].some((field) => field?.trim() === "") // it basically check if field exists then apply trim on that then after applying the trim if there is still empty then it will return true
     ){
-        throw new ApiError(400, ":( All fields are required!")
+        // throw new ApiError(400, ":( All fields are required!")
+        return res.status(400).json(new ApiError(400, null, ":( All fields are required!"));
     }
     // Btw you can add more checks here 
 
@@ -67,7 +68,8 @@ const registerUser = asyncHandler( async (req, res) => {
     })
 
     if (existedUser) {
-        throw new ApiError(409, ":( User with email or username already exists!")
+        // throw new ApiError(409, ":( User with email or username already exists!")
+        return res.status(409).json(new ApiError(409, null, ":( User with email or username already exists!"));
     }
 
     // console.log(req.files);
@@ -88,7 +90,8 @@ const registerUser = asyncHandler( async (req, res) => {
     }
 
     if(!avatarLocalPath) {
-        throw new ApiError(400, ":( Avatar file is required!")
+        // throw new ApiError(400, ":( Avatar file is required!")
+        return res.status(400).json(new ApiError(400, null, ":( Avatar file is required!"));
     }
 
     // 5. upload them to cloudinary, avatar
@@ -96,7 +99,8 @@ const registerUser = asyncHandler( async (req, res) => {
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
     // check
     if(!avatar) {
-        throw new ApiError(400, ":( Avatar file is required!")
+        // throw new ApiError(400, ":( Avatar file is required!")
+        return res.status(400).json(new ApiError(400, null, ":( Avatar file is required!"));
     }
 
     // 5. create user object - create entry in db
@@ -126,7 +130,8 @@ const registerUser = asyncHandler( async (req, res) => {
     )
     // 7. check for user creation
     if(!createdUSer) {
-        throw new ApiError(500, ":( Something went wrong while registering the user!")
+        // throw new ApiError(500, ":( Something went wrong while registering the user!")
+        return res.status(500).json(new ApiError(500, null, ":( Something went wrong while registering the user!"))
     }
 
     // 8. return response
@@ -155,7 +160,8 @@ const loginUser = asyncHandler(async (req, res) => {
     // }
 
     if(!username && !email){
-        throw new ApiError(400, ":( Username and email is required!")
+        // throw new ApiError(400, ":( Username and email is required!")
+        return res.status(400).json(new ApiError(400, null, ":( Username and email is required!"))
     }
 
     // 2. access by username or email & find the user
@@ -164,14 +170,16 @@ const loginUser = asyncHandler(async (req, res) => {
     })
 
     if(!user){
-        throw new ApiError(400, ":( User does not exist!")
+        // throw new ApiError(400, ":( User does not exist!")
+        return res.status(400).json(new ApiError(400, null, ":( User does not exist!"))
     }
 
     // 3. password check
     const isPasswordValid = await user.isPasswordCorrect(password)
 
     if(!isPasswordValid){
-        throw new ApiError(400, ":( Invalid user credentials!")
+        // throw new ApiError(400, ":( Invalid user credentials!")
+        return res.status(400).json(new ApiError(400, null, ":( Invalid user credentials!"))
     }
     
     // 4. genereate access & refresh token
@@ -250,7 +258,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
 
     if(!incomingRefreshToken){
-        throw new ApiError(401, ":( Unauthorized request!")
+        // throw new ApiError(401, ":( Unauthorized request!")
+        return res.status(401).json(new ApiError(401, null, ":( Unauthorized request!"))
     }
 
     try {
@@ -261,12 +270,14 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         const user = await User.findById(decodedToken?._id)
     
         if(!user){
-            throw new ApiError(401, ":( Invalid refresh token!")
+            // throw new ApiError(401, ":( Invalid refresh token!")
+            return res.status(401).json(new ApiError(401, null, ":( Invalid refresh token!"))
         }
     
         // now check the incomingRefreshToken with saved refreshToken which we saved during creation of method generateAccess&RefreshTokens await user.save({ validateBeforeSave: false })
         if(incomingRefreshToken !== user?.refreshToken){
-            throw new ApiError(401, ":( Refresh token is expired or used!")
+            // throw new ApiError(401, ":( Refresh token is expired or used!")
+            return res.status(401).json(new ApiError(401, null, ":( Refresh token is expired or used!"))
         }
     
         const options = {
@@ -289,7 +300,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             )
         )
     } catch (error) {
-        throw new ApiError(401, error?.message || ":( Invalid refresh token!")
+        // throw new ApiError(401, error?.message || ":( Invalid refresh token!")
+        return res.status(401).json(new ApiError(401, null, ":( Invalid refresh token!"))
     }
 
 
@@ -311,7 +323,8 @@ const changeCurrentPassword = asyncHandler(async(req, res) => {
     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
 
     if(!isPasswordCorrect){
-        throw new ApiError(400, ":( Invalid old password!")
+        // throw new ApiError(400, ":( Invalid old password!")
+        return res.status(400).json(new ApiError(400, null, ":( Invalid old password!"))
     }
 
     user.password = newPassword
@@ -336,7 +349,8 @@ const updateAccountDetails = asyncHandler(async(req, res) => {
     const {fullName, email} = req.body
 
     if(!fullName || !email){
-        throw new ApiError(400, ":( All fields are required!")
+        // throw new ApiError(400, ":( All fields are required!")
+        return res.status(400).json(new ApiError(400, null, ":( All fields are required!"))
     }
 
     const user = await User.findByIdAndUpdate(
@@ -360,7 +374,8 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
     const avatarLocalPath = req.file?.path // here we didn't use req.files cause here we need only one pic so req.file    
 
     if(!avatarLocalPath){
-        throw new ApiError(400, ":( Avatar file is missing!")
+        // throw new ApiError(400, ":( Avatar file is missing!")
+        return res.status(400).json(new ApiError(400, null, ":( Avatar file is missing!"))
     }
 
     // const avatar = await uploadOnCloudinary(avatarLocalPath)
@@ -390,7 +405,8 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
     const avatar = await uploadOnCloudinary(avatarLocalPath);
 
     if (!avatar.url) {
-        throw new ApiError(400, ":( Error while uploading avatar");
+        // throw new ApiError(400, ":( Error while uploading avatar");
+        return res.status(400).json(new ApiError(400, null, ":( Error while uploading avatar"));
     }
 
     const user = await User.findById(req.user._id).select("avatar");
@@ -429,13 +445,15 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
     const coverImageLocalPath = req.file?.path // here we didn't use req.files cause here we need only one pic so req.file
 
     if(!coverImageLocalPath){
-        throw new ApiError(400, ":( Cover image file is missing!")
+        // throw new ApiError(400, ":( Cover image file is missing!")
+        return res.status(400).json(new ApiError(400, null, ":( Cover image file is missing!"))
     }
 
     const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
     if(!coverImage.url){
-        throw new ApiError(400, ":( Error while uploading on cover image!")
+        // throw new ApiError(400, ":( Error while uploading on cover image!")
+        return res.status(400).json(new ApiError(400, null, ":( Error while uploading on cover image!"))
     }
 
     // const user = await User.findByIdAndUpdate(
@@ -484,7 +502,8 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
     const {username} = req.params
     
     if(!username.trim()){
-        throw new ApiError(400, ":( Username is missing!")
+        // throw new ApiError(400, ":( Username is missing!")
+        return res.status(400).json(new ApiError(400, null, ":( Username is missing!"))
     }
 
     // pipelines can be written like {},{},{} like this way so form here its has 3 pipekines
@@ -543,7 +562,8 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
     ])
 
     if(!channel?.length){
-        throw new ApiError(404, ":( Channel does not exist!")
+        // throw new ApiError(404, ":( Channel does not exist!")
+        return res.status(404).json(new ApiError(404, null, ":( Channel does not exist!"))
     }
 
     return res

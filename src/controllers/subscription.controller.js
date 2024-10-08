@@ -11,7 +11,8 @@ const toggleSubscription = asyncHandler(async (req, res) => {
     // TODO: toggle subscription
 
     if (!isValidObjectId(channelId)) {
-        throw new ApiError(400, ":( Invalid channelId");
+        // throw new ApiError(400, ":( Invalid channelId");
+        return res.status(400).json(new ApiError(400, null, ":( Invalid channelId"));
     }
 
     const isSubscribed = await Subscription.findOne({
@@ -55,7 +56,8 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
     let {channelId} = req.params
 
     if (!isValidObjectId(channelId)) {
-        throw new ApiError(400, ":( Invalid channelId");
+        // throw new ApiError(400, ":( Invalid channelId");
+        return res.status(400).json(new ApiError(400, null, ":( Invalid channelId"));
     }
 
     channelId = new mongoose.Types.ObjectId(channelId);
