@@ -182,8 +182,9 @@ const loginUser = asyncHandler(async (req, res) => {
 
     // you have to set some options here that those cookies can't be modified through frontend but can be modify by backend
     const options = {
-        httpOnly: true,
-        secure: true
+        httpOnly: true,  // means that this cookie can't be modified through frontend
+        secure: true, // means that this cookie can only be accessed through https
+        sameSite: "None" // important for deployment
     }
 
     return res
@@ -231,7 +232,8 @@ const logoutUser = asyncHandler(async(req, res) => {
     // now clear the cookies
     const options = {
         httpOnly: true,
-        secure: true
+        secure: true,
+        sameSite: "None" // important for deployment
     }
 
     return res
@@ -269,7 +271,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     
         const options = {
             httpOnly: true,
-            secure: true
+            secure: true,
+            sameSite: "None" // important for deployment
         }
     
         const {accessToken, newRefreshToken} = await generateAccessAndRefreshTokens(user._id)
